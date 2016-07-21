@@ -33,12 +33,14 @@ scene = new THREE.Scene();
 
 var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
 
+
 var uniforms = {
 	time:       { value: 1.0 },
 	resolution: { value: new THREE.Vector2() },
 	mouse:  	{value: mousePos },
 
-	scale:      {value: 2.0, gui: true, min: 1.0, max: 10.0}
+	scale:      {value: 2.0, gui: true, min: 1.0, max: 10.0},
+	particle_size: {value: 2.0, gui: true, min: 1.0, max: 40.0}
 	
 
 };
@@ -52,8 +54,29 @@ var material = new THREE.ShaderMaterial( {
 	fragmentShader: document.getElementById( 'fragmentShader' ).textContent
 } );
 
-var mesh = new THREE.Mesh( geometry, material );
-scene.add( mesh );
+
+var PARTICLE_COUNT = 10000;
+var geo = new THREE.BufferGeometry();
+
+
+var particleVerts = new Float32Array(PARTICLE_COUNT * 3);
+
+
+for (var i = 0; i < PARTICLE_COUNT; i++) {
+
+
+	self.particleVerts[i * 3 + 0] = 0; //x
+	self.particleVerts[i * 3 + 1] = 0; //y
+	self.particleVerts[i * 3 + 2] = i/PARTICLE_COUNT; //z
+
+
+}
+
+geo.addAttribute('position', new THREE.BufferAttribute(particleVerts, 3));
+
+var particles = new THREE.Points( geo ,material);
+
+scene.add( particles );
 
 
 var startTime = new Date().getTime();
@@ -67,6 +90,10 @@ function render() {
 	uniforms.mouse.value = mousePos;
 
 	//console.log(ellapsedTime);
+
+	 var gl = renderer.context;
+  	gl.enable(gl.BLEND);
+  	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	
 	renderer.render( scene, camera );
 	requestAnimationFrame( render );
