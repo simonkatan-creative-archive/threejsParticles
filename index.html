@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Blob</title>
+		<style>
+			body { margin: 0; background-color: black }
+			canvas { width: 100%; height: 100% }
+		</style>
+
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			void main()	{
+				gl_Position = vec4( position, 1.0 );
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			#ifdef GL_ES
+				precision highp float;
+			#endif
+
+
+			uniform vec2 resolution;
+			uniform float time;
+			uniform vec2 mouse;
+			uniform float scale;
+
+			
+
+
+
+			float PI  = 3.141592653589793;
+			float TWO_PI = 6.283185307179586;
+
+			///////////////////////////////////HELPERS///////////////////////////////////
+
+			
+
+			
+			void main()	{
+
+
+				//generate normalised coordinates
+
+				vec2 trans = vec2(2.0, resolution.y * 2.0/ resolution.x) * scale;
+
+				vec2 pos = ( gl_FragCoord.xy / resolution.xy ) - 0.5;
+				pos *= trans;
+
+				vec2 center = vec2(0.);
+
+				//FOR DEBUGGING WITH MOUSE
+				
+				vec2 mouseP = mouse - .5;
+				mouseP *= trans;
+				mouseP.y *= -1.;
+				
+				float cp = 1.0 - step(0.02, distance(pos , mouseP));
+				float mp = 1.0 - step(0.02, distance(pos , center));
+				vec3 markers = vec3(0., cp,  0.) + vec3(mp,0., 0.);
+
+				
+
+				
+				
+				gl_FragColor = vec4( vec3(markers),1.0);
+
+			}
+
+		</script>
+
+	</head>
+	<body>
+		<script type="text/javascript" src="dat.gui.min.js"></script>
+		<script src="three.min.js"></script>
+		<script type="text/javascript" src="main.js"></script>
+	</body>
+</html>
