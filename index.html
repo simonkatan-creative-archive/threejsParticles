@@ -12,6 +12,7 @@
 		<script id="vertexShader" type="x-shader/x-vertex">
 
 			uniform float time;
+			uniform float env_time;
 			uniform vec2 mouse;
 			uniform vec2 resolution;
 			uniform float scale;
@@ -99,9 +100,12 @@
 
 
 				vec2 trans = vec2(2.0, resolution.y * 2.0/ resolution.x) * scale ;
-				float f = position.z * TWO_PI;
+				float f = position.z;
 
-				vec2 pos = vec2(snoise(vec3(f * 1000. , 0., time * .5) ), snoise(vec3(f * 1000. , 200., time * .5 )));
+				float theta = snoise(vec3(f * 1000. , 0., 0.) ) * TWO_PI;
+				float rho = env_time / (5. + snoise(vec3(f * 1000. , f * 10., 0.) ) * 10.);
+
+				vec2 pos = vec2(cos(theta), sin(theta)) * rho;
 
 				pos *= 1./trans;
 
@@ -143,7 +147,7 @@
 				float d = distance(center, pos * 2.);
 
 				
-				gl_FragColor = vec4(1. - d);
+				gl_FragColor = vec4(vec3(1. - d),smoothstep(0. , 0.1, 1. - d) );
 
 			}
 

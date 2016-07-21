@@ -9,6 +9,7 @@ var height = window.innerHeight;
 var canvas;
 var mousePos = new THREE.Vector2(0,0);
 
+
 canvas = renderer.domElement;
 
 canvas.addEventListener("mousemove", function (e) {
@@ -38,6 +39,7 @@ var uniforms = {
 	time:       { value: 1.0 },
 	resolution: { value: new THREE.Vector2() },
 	mouse:  	{value: mousePos },
+	env_time:  	{value: 0. },
 
 	scale:      {value: 2.0, gui: true, min: 1.0, max: 10.0},
 	particle_size: {value: 2.0, gui: true, min: 1.0, max: 40.0}
@@ -80,6 +82,7 @@ scene.add( particles );
 
 
 var startTime = new Date().getTime();
+var envStartTime = new Date().getTime();
 var ellapsedTime = 0;
 
 
@@ -88,8 +91,10 @@ function render() {
 	ellapsedTime = (new Date().getTime() - startTime) * 0.001;
 	uniforms.time.value = ellapsedTime;
 	uniforms.mouse.value = mousePos;
+	uniforms.env_time.value = (new Date().getTime() - envStartTime) * 0.001;
 
-	//console.log(ellapsedTime);
+
+	//console.log(uniforms.env_time.value);
 
 	 var gl = renderer.context;
   	gl.enable(gl.BLEND);
@@ -125,6 +130,10 @@ var ControlPanel = function() {
     }
   }
 
+  this.explode = function(){
+  	envStartTime = new Date().getTime();
+  }
+
   
 };
 
@@ -132,7 +141,12 @@ window.onload = function()
 {
   var controlPanel = new ControlPanel();
   var gui = new dat.GUI();
+  
+  gui.add(controlPanel, 'explode');
   gui.remember(controlPanel);
+
+
+
   var events = {};
   
   for (var property in uniforms) {
