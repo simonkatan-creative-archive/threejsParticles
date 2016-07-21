@@ -84,6 +84,7 @@ scene.add( particles );
 var startTime = new Date().getTime();
 var envStartTime = new Date().getTime();
 var ellapsedTime = 0;
+var envLengthSeconds = 2.5;
 
 
 function render() {
@@ -91,7 +92,7 @@ function render() {
 	ellapsedTime = (new Date().getTime() - startTime) * 0.001;
 	uniforms.time.value = ellapsedTime;
 	uniforms.mouse.value = mousePos;
-	uniforms.env_time.value = (new Date().getTime() - envStartTime) * 0.001;
+	uniforms.env_time.value = Math.min(1.0,(new Date().getTime() - envStartTime) * 0.001/envLengthSeconds);
 
 
 	//console.log(uniforms.env_time.value);

@@ -20,6 +20,13 @@
 
 			float TWO_PI = 6.283185307179586;
 
+			varying float final_size;
+
+
+			//hash function
+			float random(float x){
+				return fract(sin(x * 3454.2121) * 23672.38928);
+			}
 
 			//  Simplex 3D Noise 
 			//  by Ian McEwan, Ashima Arts
@@ -100,17 +107,26 @@
 
 
 				vec2 trans = vec2(2.0, resolution.y * 2.0/ resolution.x) * scale ;
-				float f = position.z;
 
-				float theta = snoise(vec3(f * 1000. , 0., 0.) ) * TWO_PI;
-				float rho = env_time / (5. + snoise(vec3(f * 1000. , f * 10., 0.) ) * 10.);
+				float theta = random(position.z * 101.) * TWO_PI;
+				float rho = pow(env_time,0.25 + random(position.z) * 0.15) * (0.15 + random(position.z * 1.6) * 0.75);
 
-				vec2 pos = vec2(cos(theta), sin(theta)) * rho;
 
+				float s = max(0.1, random(position.z * 1.01 ));
+
+				vec2 pos = vec2(cos(theta), sin(theta)) * rho * 2.0;
+
+
+				pos += vec2(-.125) + vec2(random(position.z * 2.478), random(position.z * 1278.12425)) * vec2(.25);
 				pos *= 1./trans;
 
+				
 				gl_Position = vec4( vec3(pos.x, pos.y, 0.), 1.0 );
-				gl_PointSize = particle_size/scale;
+				final_size = particle_size * s * (1.0 - pow(env_time,  random(position.z * 1.34) * 0.25 ))/scale;
+
+				//TODO make final_size actual radius in pixels for frag shader
+
+				gl_PointSize = final_size;
 			}
 		</script>
 
@@ -124,15 +140,13 @@
 			uniform float time;
 			uniform vec2 mouse;
 			
-
+			varying float final_size;
 
 
 			float PI  = 3.141592653589793;
 			float TWO_PI = 6.283185307179586;
 
 			///////////////////////////////////HELPERS///////////////////////////////////
-
-			
 
 			
 			void main()	{
@@ -142,6 +156,8 @@
 
 				vec2 pos = gl_PointCoord - .5;
 				vec2 center = vec2(0.);
+
+				if(final_size < 1.0) discard;
 
 
 				float d = distance(center, pos * 2.);
