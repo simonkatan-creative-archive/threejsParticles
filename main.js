@@ -35,20 +35,36 @@ scene = new THREE.Scene();
 var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
 
 
+
+
 var uniforms = {
 	time:       { value: 1.0 },
 	resolution: { value: new THREE.Vector2() },
 	mouse:  	{value: mousePos },
 	env_time:  	{value: 0. },
 
-	scale:      {value: 2.0, gui: true, min: 1.0, max: 10.0},
-	particle_size: {value: 2.0, gui: true, min: 1.0, max: 40.0}
-	
+	scale:      {value: 1.0, gui: true, min: 1.0, max: 10.0},
+	particle_size: {value: 40.0, gui: true, min: 1.0, max: 60.0},
+	color_1: {value: new THREE.Vector3(1.,1.,1.), gui: true, type: "color"},
+	color_2: {value: new THREE.Vector3(1.,1.,1.), gui: true, type: "color"}
 
 };
 
 uniforms.resolution.value.x = renderer.domElement.width;
 uniforms.resolution.value.y = renderer.domElement.height;
+
+var noiseBuffer = new Uint8Array(512 * 512 * 3 ); 
+
+
+for(var i = 0; i < 512 * 512 * 3; i++)
+{
+	noiseBuffer[i] = Math.floor(Math.random() * 256);
+}
+
+var noiseTex = new THREE.DataTexture(noiseBuffer, 512,512, THREE.RGBFormat );
+noiseTex.needsUpdate = true;
+
+uniforms.noise_tex = {value: noiseTex};
 
 var material = new THREE.ShaderMaterial( {
 	uniforms: uniforms,
@@ -62,19 +78,27 @@ var geo = new THREE.BufferGeometry();
 
 
 var particleVerts = new Float32Array(PARTICLE_COUNT * 3);
+var particleColors = new Float32Array(PARTICLE_COUNT );
 
+
+
+var color_1 = hexToFloat(uniforms.color_1.value);
+var color_2 = hexToFloat(uniforms.color_2.value);
 
 for (var i = 0; i < PARTICLE_COUNT; i++) {
 
 
-	self.particleVerts[i * 3 + 0] = 0; //x
-	self.particleVerts[i * 3 + 1] = 0; //y
-	self.particleVerts[i * 3 + 2] = i/PARTICLE_COUNT; //z
+	particleVerts[i * 3 + 0] = 0; //x
+	particleVerts[i * 3 + 1] = 0; //y
+	particleVerts[i * 3 + 2] = i/PARTICLE_COUNT; //z
+
+	particleColors[i] = i%2;
 
 
 }
 
 geo.addAttribute('position', new THREE.BufferAttribute(particleVerts, 3));
+geo.addAttribute('color_type', new THREE.BufferAttribute(particleColors, 1));
 
 var particles = new THREE.Points( geo ,material);
 

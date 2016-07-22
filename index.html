@@ -11,16 +11,25 @@
 
 		<script id="vertexShader" type="x-shader/x-vertex">
 
+			attribute float color_type;
+
 			uniform float time;
 			uniform float env_time;
 			uniform vec2 mouse;
 			uniform vec2 resolution;
+
+			uniform sampler2D noiseTex;
+
 			uniform float scale;
 			uniform float particle_size;
+
+			uniform vec3 color_1;
+			uniform vec3 color_2;
 
 			float TWO_PI = 6.283185307179586;
 
 			varying float final_size;
+			varying vec3 color;
 
 
 			//hash function
@@ -105,16 +114,19 @@
 
 			void main()	{
 
+				//TODO . a separate test for data textures  ... send perlin noise + random
+
 
 				vec2 trans = vec2(2.0, resolution.y * 2.0/ resolution.x) * scale ;
 
 				float theta = random(position.z * 101.) * TWO_PI;
 				float rho = pow(env_time,0.25 + random(position.z) * 0.15) * (0.15 + random(position.z * 1.6) * 0.75);
 
-
 				float s = max(0.1, random(position.z * 1.01 ));
 
-				vec2 pos = vec2(cos(theta), sin(theta)) * rho * 2.0;
+				vec2 turbulance = vec2 ( snoise(vec3(position.z * 11.13637,0.,time + position.z)), snoise(vec3(position.z * 11.13637,1.,time + position.z)));
+
+				vec2 pos = vec2(cos(theta), sin(theta)) * rho * 2.0 + turbulance * pow(env_time, .5) * 0.05;
 
 
 				pos += vec2(-.125) + vec2(random(position.z * 2.478), random(position.z * 1278.12425)) * vec2(.25);
@@ -124,9 +136,11 @@
 				gl_Position = vec4( vec3(pos.x, pos.y, 0.), 1.0 );
 				final_size = particle_size * s * (1.0 - pow(env_time,  random(position.z * 1.34) * 0.25 ))/scale;
 
-				//TODO make final_size actual radius in pixels for frag shader
+				color = color_1 * color_type + color_2 * (1. - color_type);
 
+				
 				gl_PointSize = final_size;
+
 			}
 		</script>
 
@@ -139,8 +153,12 @@
 			uniform vec2 resolution;
 			uniform float time;
 			uniform vec2 mouse;
+
+			varying vec3 color;
 			
 			varying float final_size;
+			
+			uniform sampler2D noise_tex;
 
 
 			float PI  = 3.141592653589793;
@@ -157,13 +175,15 @@
 				vec2 pos = gl_PointCoord - .5;
 				vec2 center = vec2(0.);
 
-				if(final_size < 1.0) discard;
+				if(final_size < 2.0) discard;
 
 
 				float d = distance(center, pos * 2.);
 
 				
-				gl_FragColor = vec4(vec3(1. - d),smoothstep(0. , 0.1, 1. - d) );
+				gl_FragColor = vec4(vec3(1. - d) * color, smoothstep(0. , 0.1, 1. - d) );
+
+	
 
 			}
 
